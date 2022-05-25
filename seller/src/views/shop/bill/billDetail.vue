@@ -33,46 +33,49 @@
       <div>
         <h3 class="ml_10">结算详细</h3>
         <div class="bill-detail-price">
-          <span>
-            <p>退单金额</p>
-            <p class="theme_color">-{{bill.refundPrice || 0 | unitPrice('￥')}}</p>
-          </span>
-          <span>
-            <p>平台收取佣金</p>
-            <p class="theme_color">-{{bill.commissionPrice || 0 | unitPrice('￥')}}</p>
-          </span>
-          <span>
-            <p>分销返现支出</p>
-            <p class="theme_color">-{{bill.distributionCommission || 0  | unitPrice('￥')}}</p>
-          </span>
-          <span>
-            <p>平台优惠券支出</p>
-            <p class="theme_color">-{{bill.siteCouponCommission || 0  | unitPrice('￥')}}</p>
-          </span>
-          <span>
-            <p>退单产生退还佣金金额</p>
-            <p class="increase-color">+{{bill.refundCommissionPrice || 0  | unitPrice('￥')}}</p>
-          </span>
+            <span>
+              <p>退单金额</p>
+              <p class="theme_color">-{{bill.refundPrice || 0 | unitPrice('￥')}}</p>
+            </span>
 
-          <span>
-            <p>退单分销返现返还</p>
-            <p class="increase-color">+{{bill.distributionRefundCommission || 0  | unitPrice('￥')}}</p>
-          </span>
+            <span>
+              <p>平台收取佣金</p>
+              <p class="theme_color">-{{bill.commissionPrice || 0 | unitPrice('￥')}}</p>
+            </span>
+        		  <span>
+        		    <p>退单产生退还佣金金额</p>
+        		    <p class="increase-color">+{{bill.refundCommissionPrice || 0  | unitPrice('￥')}}</p>
+        		  </span>
 
-          <span>
-            <p>退单平台优惠券返还</p>
-            <p class="increase-color">+{{bill.siteCouponRefundCommission || 0  | unitPrice('￥')}}</p>
-          </span>
-          <span>
-            <p>积分结算金额</p>
-            <p class="increase-color">+{{bill.pointSettlementPrice || 0  | unitPrice('￥')}}</p>
-          </span>
-          <span>
-            <p>砍价商品结算金额</p>
-            <p class="increase-color">+{{bill.kanjiaSettlementPrice || 0  | unitPrice('￥')}}</p>
-          </span>
+            <span>
+              <p>分销返现支出</p>
+              <p class="theme_color">-{{bill.distributionCommission || 0  | unitPrice('￥')}}</p>
+            </span>
+        		  <span>
+        		    <p>退单分销返现返还</p>
+        		    <p class="increase-color">+{{bill.distributionRefundCommission || 0  | unitPrice('￥')}}</p>
+        		  </span>
+
+            <span>
+              <p>退单平台优惠券补贴返还</p>
+              <p class="theme_color">-{{bill.siteCouponRefundCommission || 0  | unitPrice('￥')}}</p>
+            </span>
+
+            <span>
+              <p>平台优惠券补贴</p>
+              <p class="increase-color">+{{bill.siteCouponCommission || 0  | unitPrice('￥')}}</p>
+            </span>
+
+            <span>
+              <p>积分结算金额</p>
+              <p class="increase-color">+{{bill.pointSettlementPrice || 0  | unitPrice('￥')}}</p>
+            </span>
+            <span>
+              <p>砍价商品结算金额</p>
+              <p class="increase-color">+{{bill.kanjiaSettlementPrice || 0  | unitPrice('￥')}}</p>
+            </span>
+          </div>
         </div>
-      </div>
     </Card>
     <Card class="mt_10">
       <Tabs active-key="tab" type="card" @on-click="clickTabs">
@@ -245,6 +248,24 @@ export default {
             }
           },
         },
+		{
+		  title: "平台优惠券补贴金额",
+		  key: "siteCouponCommission",
+		  render: (h, params) => {
+		    if(params.row.siteCouponCommission == null){
+		      return h(
+		        "div",
+		        "-"
+		      );
+		    }else{
+		      return h(
+		        "div",
+		        this.$options.filters.unitPrice(params.row.siteCouponCommission, "￥")
+		      );
+		    }
+		
+		  },
+		},
         {
           title: "分销金额",
           key: "distributionRebate",
@@ -292,12 +313,20 @@ export default {
         {
           title: "退款流水编号",
           key: "sn",
-          minWidth: 130,
+          minWidth: 120,
+          tooltip: true
         },
         {
           title: "订单编号",
-          key: "sn",
+          key: "orderSn",
           minWidth: 120,
+          tooltip: true
+        },
+        {
+          title: "售后编号",
+          key: "refundSn",
+          minWidth: 120,
+          tooltip: true
         },
         {
           title: "退款金额",

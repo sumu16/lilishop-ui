@@ -70,7 +70,7 @@
             <Button @click="goPay(order.sn)" size="small" type="success" v-if="order.allowOperationVO.pay">去支付</Button>
             <Button @click="received(order.sn)" size="small" type="warning" v-if="order.allowOperationVO.rog">确认收货</Button>
             <!-- 售后 -->
-            <Button v-if="order.groupAfterSaleStatus.includes('NOT_APPLIED')" @click="applyAfterSale(order.orderItems)" size="small">申请售后</Button>
+            <Button v-if="order.groupAfterSaleStatus && order.groupAfterSaleStatus.includes('NOT_APPLIED')" @click="applyAfterSale(order.orderItems)" size="small">申请售后</Button>
           </div>
         </div>
       </div>
@@ -287,7 +287,7 @@ export default {
     },
     filterOrderStatus (status) { // 获取订单状态中文
       const ob = this.orderStatusList.filter(e => { return e.status === status });
-      return ob[0].name
+      return ob && ob[0] ? ob[0].name : status
     }
   }
 };

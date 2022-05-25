@@ -67,14 +67,14 @@
               prop="goodsUnit"
             >
               <Select v-model="baseInfoForm.goodsUnit" style="width: 100px">
-              <Scroll :on-reach-bottom="handleReachBottom" >
-                <Option
-                  v-for="(item, index) in goodsUnitList"
-                  :key="index"
-                  :value="item"
-                  >{{ item }}
-                </Option>
-              </Scroll>    
+                <Scroll :on-reach-bottom="handleReachBottom">
+                  <Option
+                    v-for="(item, index) in goodsUnitList"
+                    :key="index"
+                    :value="item"
+                    >{{ item }}
+                  </Option>
+                </Scroll>
               </Select>
             </FormItem>
             <FormItem
@@ -183,7 +183,7 @@
                           <Button
                             type="primary"
                             slot="extra"
-                            @click="handleCloseSkuItem($index)"
+                            @click="handleCloseSkuItem($index, item)"
                           >
                             删除规格
                           </Button>
@@ -196,7 +196,7 @@
                                 style="width: 150px"
                                 v-model="item.name"
                                 :maxlength="30"
-                                placeholder="请输入规格项名称"
+                                placeholder="请输入规格名称"
                                 :filter-method="filterMethod"
                                 :data="skuData"
                                 @on-change="editSkuItem"
@@ -224,7 +224,7 @@
                                   :data="skuVal"
                                   @on-focus="changeSkuVals(item.name)"
                                   @on-change="
-                                    skuValueChange(val.value, $index, item)
+                                    skuValueChange(val.value, index, item)
                                   "
                                 >
                                 </AutoComplete>
@@ -232,7 +232,7 @@
                                   type="primary"
                                   size="small"
                                   style="margin-left: 10px"
-                                  @click="handleCloseSkuValue(item, index)"
+                                  @click="handleCloseSkuValue(val, index)"
                                 >
                                   删除
                                 </Button>
@@ -253,6 +253,14 @@
                       size="small"
                       @click="addSkuItem"
                       >添加规格项</Button
+                    >
+                    &nbsp;
+                    <Button
+                      class="add-sku-btn"
+                      type="warning"
+                      size="small"
+                      @click="handleClearSku"
+                      >清空规格项</Button
                     >
                   </div>
                 </Panel>
@@ -604,7 +612,8 @@ export default {
     };
     return {
       regular,
-      total:0,
+      total: 0,
+      global: 0,
       accessToken: "", //令牌token
       goodsParams: "",
       categoryId: "", // 商品分类第三级id
@@ -689,9 +698,9 @@ export default {
         value: [regular.REQUIRED, regular.VARCHAR60],
         templateId: [regular.REQUIRED],
       },
-      params:{
-        pageNumber:1,
-        pageSize:10
+      params: {
+        pageNumber: 1,
+        pageSize: 10,
       },
       skuInfoRules: {},
       /** 品牌列表 */
@@ -822,7 +831,6 @@ export default {
     },
     // 商品图片上传成功
     handleSuccessGoodsPicture(res, file) {
-      console.log(res);
       if (file.response) {
         file.url = file.response.result;
         this.baseInfoForm.goodsGalleryFiles.push(file);
@@ -871,8 +879,8 @@ export default {
         }
       );
     },
-     // 页面触底
-    handleReachBottom(){
+    // 页面触底
+    handleReachBottom() {
       setTimeout(() => {
         if (this.params.pageNumber * this.params.pageSize <= this.total) {
           this.params.pageNumber++;
@@ -884,7 +892,6 @@ export default {
     GET_GoodsUnit() {
       API_GOODS.getGoodsUnitList(this.params).then((res) => {
         if (res.success) {
-          console.log(res)
           this.goodsUnitList.push(...res.result.records.map((i) => i.name));
           this.total = res.result.total;
         }
@@ -1009,7 +1016,7 @@ export default {
         skus.push(sku);
       });
       this.skuInfo = skusInfo;
-      this.renderTableData();
+      this.renderTableData(skus);
       this.skuTableData = skus;
     },
 
@@ -1058,19 +1065,20 @@ export default {
         return;
       }
       // 写入对象，下标，具体对象
+      let num = this.global++;
       this.$set(this.skuInfo, this.skuInfo.length, {
-        spec_values: [],
-        name: "规格名",
+        spec_values: [{ name: "规格名" + num, value: "" }],
+        name: "规格名" + num,
       });
-      this.renderTableData();
+      this.renderTableData(this.skuTableData);
     },
     // 编辑规格名
     editSkuItem() {
-      this.renderTableData();
+      this.renderTableData(this.skuTableData);
     },
     // 编辑规格值
     async skuValueChange(val, index, item) {
-      this.renderTableData();
+      this.renderTableData(this.skuTableData);
     },
     // 获取焦点时，取得规格名对应的规格值
     changeSkuVals(name) {
@@ -1085,12 +1093,15 @@ export default {
       }
     },
     /** 移除当前规格项 进行数据变化*/
-    handleCloseSkuItem($index) {
+    handleCloseSkuItem($index, item) {
       this.skuInfo.splice($index, 1);
+      this.skuTableData.forEach((e, index) => {
+        delete e[item.name];
+      });
       /**
        * 渲染规格详细表格
        */
-      this.renderTableData();
+      this.renderTableData(this.skuTableData);
     },
     // 添加规格值的验证
     validateEmpty(params) {
@@ -1114,6 +1125,7 @@ export default {
           this.$Message.error("规格值不能大于10个！");
           return;
         }
+
         this.$set(item.spec_values, item.spec_values.length, {
           name: item.name,
           value: "",
@@ -1122,27 +1134,38 @@ export default {
         /**
          * 渲染规格详细表格
          */
-        this.renderTableData();
+        this.renderTableData(this.skuTableData);
       }
     },
-
+    handleClearSku() {
+      this.skuInfo = [];
+      this.skuTableData = [];
+      this.renderTableData(this.skuTableData);
+    },
     /** 移除当前规格值 */
     handleCloseSkuValue(item, index) {
-      item.spec_values.splice(index, 1);
-
+      // this.skuInfo[item.name].spec_values.splice(index, 1);
+      this.skuInfo.forEach((i) => {
+        if (i.name === item.name) {
+          i.spec_values.splice(index, 1);
+        }
+      });
+      this.skuTableData = this.skuTableData.filter(
+        (e, index) => e[item.name] !== item.value
+      );
       this.baseInfoForm.regeneratorSkuFlag = true;
       /**
        * 渲染规格详细表格
        */
-      this.renderTableData();
+      this.renderTableData(this.skuTableData);
     },
 
     /**
      * 渲染table所需要的column 和 data
      */
-    renderTableData() {
+    renderTableData(skus) {
       this.skuTableColumn = [];
-      this.skuTableData = [];
+      // this.skuTableData = [];
       let pushData = [];
       //渲染头部
       this.skuInfo.forEach((sku) => {
@@ -1187,24 +1210,39 @@ export default {
       this.skuTableColumn = pushData;
       //克隆所有渲染的数据
       let cloneTemp = cloneObj(this.skuInfo);
-
-      //数据清空一次
-      this.$set(this, "skuTableData", []);
-      //判定 是否存在规格分组
       if (cloneTemp[0]) {
         //存放最终结果
         let result = [];
         //循环选中的 sku 数据
-        cloneTemp[0].spec_values.forEach((specItem) => {
-          result.push({
-            [cloneTemp[0].name]: specItem.value,
-            images: this.baseInfoForm.goodsGalleryFiles || [],
-          });
+        cloneTemp[0].spec_values.forEach((specItem, index) => {
+          // 如存在数据，则将数据赋值
+          if (skus && skus[index] && specItem.value !== "") {
+            let obj = {
+              id: skus[index].id,
+              sn: skus[index].sn,
+              quantity: skus[index].quantity,
+              cost: skus[index].cost,
+              price: skus[index].price,
+              [cloneTemp[0].name]: specItem.value,
+              images: this.baseInfoForm.goodsGalleryFiles || [],
+            };
+            if (specItem.value !== "") {
+              obj.id = skus[index].id;
+            }
+            if (skus[index].weight !== "") {
+              obj.weight = skus[index].weight;
+            }
+            result.push(obj);
+          } else {
+            result.push({
+              [cloneTemp[0].name]: specItem.value,
+              images: this.baseInfoForm.goodsGalleryFiles || [],
+            });
+          }
         });
         cloneTemp.splice(0, 1);
-        result = this.specIterator(result, cloneTemp);
+        result = this.specIterator(result, cloneTemp, skus);
         this.skuTableData = result;
-        console.log(this.skuTableData);
       }
     },
     /**
@@ -1212,15 +1250,81 @@ export default {
      * result 渲染的数据
      * array spec数据
      */
-    specIterator(result, cloneTemp) {
+    specIterator(result, cloneTemp, skus) {
+      // console.log("-----skus-----");
+      // console.log(JSON.parse(JSON.stringify(skus)));
+      // console.log("-----result-----");
+      // console.log(JSON.parse(JSON.stringify(result)));
+      // console.log("-----cloneTemp-----");
+      // console.log(JSON.parse(JSON.stringify(cloneTemp)));
       //是否还可以循环
       if (cloneTemp.length > 0) {
         let table = [];
-        result.forEach((resItem) => {
-          cloneTemp[0].spec_values.forEach((valItem) => {
+        // 已有数据索引
+        let findIndex = 0;
+        result.forEach((resItem, index) => {
+          cloneTemp[0].spec_values.forEach((valItem, _index) => {
             let obj = cloneObj(resItem);
-            obj[cloneTemp[0].name] = valItem.value;
+            // 判断已存在数据数量是否大于渲染数据数量（认为是在编辑原存在数据的规格值）且规格值不为空且存在已存在数据，如符合条件，则认为为修改已存在数据
+            if (skus.length > result.length && valItem.value !== "" && skus[findIndex]) {
+              obj = cloneObj(skus[findIndex]);
+            }
+            let emptyFlag = false;
+            // 判断是否为规格项的第一个值，如果不为第一个值则判断为新加数据
+            if (cloneTemp[0].spec_values.length > 1 && valItem.value === "") {
+              delete obj.id;
+              delete obj.sn;
+              delete obj.quantity;
+              delete obj.cost;
+              delete obj.price;
+              delete obj.weight;
+            }
 
+            // 判断渲染数据中是否存在空值，存在空值则判断新加数据
+            for (let key in obj) {
+              if (!obj[key]) {
+                emptyFlag = true;
+                break;
+              }
+            }
+
+            // 判断当前渲染数据是否已有数据
+            if (
+              skus &&
+              skus[findIndex] &&
+              (!skus[findIndex].id || obj.id === skus[findIndex].id) &&
+              valItem.value !== "" &&
+              !emptyFlag
+            ) {
+              // 将原存在的数据放入结果中
+              let originSku = skus[findIndex];
+              obj = {
+                sn: obj.sn || originSku.sn,
+                quantity: obj.quantity || originSku.quantity,
+                cost: obj.cost || originSku.cost,
+                price: obj.price || originSku.price,
+                weight: obj.weight || originSku.weight,
+                ...obj,
+              };
+              if (
+                originSku[valItem.name] === valItem.value ||
+                (obj.id && originSku.id === obj.id)
+              ) {
+                obj.id = originSku.id;
+              }
+
+              // 视为处理完成已存在数据，将原数据索引后移1位
+              if (skus.length == result.length) {
+                findIndex++;
+              }
+            }
+
+            // 如原存在数据大于渲染数据（认为是在编辑原存在数据的规格值），且存在已存在数据，且规格值不为空。则将原数据索引后移1位
+            if (skus.length > result.length && (skus[findIndex] && valItem.value !== "")) {
+              findIndex++;
+            }
+
+            obj[cloneTemp[0].name] = valItem.value;
             table.push(obj);
           });
         });
@@ -1233,7 +1337,7 @@ export default {
       } else {
         return result;
       }
-      return this.specIterator(result, cloneTemp);
+      return this.specIterator(result, cloneTemp, skus);
     },
     /** 根据分类id获取系统设置规格信息*/
     Get_SkuInfoByCategory(categoryId) {
@@ -1248,6 +1352,15 @@ export default {
           }
         });
       }
+    },
+    // 判断相同数组的值
+    scalarArrayEquals(array1, array2) {
+      return (
+        array1.length === array2.length &&
+        array1.every(function (v, i) {
+          return v === array2[i];
+        })
+      );
     },
     /** 自动完成表单所需方法*/
     filterMethod(value, option) {
@@ -1328,7 +1441,7 @@ export default {
     },
     /**  添加商品 **/
     save() {
-      this.submitLoading = true;
+      // this.submitLoading = true;
       this.$refs["baseInfoForm"].validate((valid) => {
         if (valid) {
           let submit = JSON.parse(JSON.stringify(this.baseInfoForm));
@@ -1349,15 +1462,27 @@ export default {
             this.submitLoading = false;
             return;
           }
-          submit.skuList = this.skuTableData.map((sku) => {
-            // 非空判断
-            delete sku._index;
-            delete sku._rowKey;
-            delete sku.specNameId;
-            delete sku.specValueId;
-            return sku;
+          let skuInfoNames = this.skuInfo.map((n) => n.name);
+          submit.skuList = [];
+          this.skuTableData.map((sku) => {
+            let skuCopy = {
+              cost: sku.cost,
+              price: sku.price,
+              quantity: sku.quantity,
+              sn: sku.sn,
+              images: sku.images,
+            };
+            if (sku.weight) {
+              skuCopy.weight = sku.weight;
+            }
+            if (sku.id) {
+              skuCopy.id = sku.id;
+            }
+            for (let skuInfoName of skuInfoNames) {
+              skuCopy[skuInfoName] = sku[skuInfoName];
+            }
+            submit.skuList.push(skuCopy);
           });
-
           if (submit.goodsGalleryFiles.length > 0) {
             submit.goodsGalleryList = submit.goodsGalleryFiles.map(
               (i) => i.url
@@ -1370,7 +1495,6 @@ export default {
           submit.recommend
             ? (submit.recommend = true)
             : (submit.recommend = false);
-
           if (this.goodsId) {
             API_GOODS.editGoods(this.goodsId, submit).then((res) => {
               if (res.success) {
@@ -1496,7 +1620,7 @@ export default {
 </style>
 
 <style>
-.ivu-select .ivu-select-dropdown{
+.ivu-select .ivu-select-dropdown {
   overflow: hidden !important;
 }
 </style>

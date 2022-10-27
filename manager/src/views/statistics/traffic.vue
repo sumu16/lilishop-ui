@@ -52,7 +52,7 @@
   </div>
 </template>
 <script>
-import affixTime from "@/views/lili-components/affix-time";
+import affixTime from "@/components/affix-time";
 import * as API_Member from "@/api/member";
 import { Chart } from "@antv/g2";
 
@@ -173,6 +173,7 @@ export default {
           stroke: "#fff",
           lineWidth: 1,
         });
+       this.orderChart.area().position("date*pv").color("title").shape("smooth");
 
       this.orderChart.render();
     },

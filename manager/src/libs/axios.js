@@ -15,6 +15,9 @@ export const managerUrl =
   (process.env.NODE_ENV === "development"
     ? BASE.API_DEV.manager
     : BASE.API_PROD.manager) + BASE.PREFIX;
+// 文件上传接口
+export const uploadFile = commonUrl + "/common/common/upload/file";
+
 
 const service = axios.create({
   timeout: 8000,
@@ -116,7 +119,6 @@ service.interceptors.response.use(
         }
       } else {
         // 其他错误处理
-        console.log(error.response.data);
         Message.error(error.response.data.message);
       }
     }
@@ -311,9 +313,10 @@ export const uploadFileRequest = (url, params) => {
   return service({
     method: "post",
     url: `${url}`,
-    params: params,
+    data: params,
     headers: {
-      accessToken: accessToken
+      accessToken: accessToken,
+      'Content-Type': 'multipart/form-data'
     }
   });
 };
@@ -346,7 +349,7 @@ export const postRequestWithNoToken = (url, params) => {
 
 /**
  * 无需token验证的请求 避免旧token过期导致请求失败
- * @param {*} url 
+ * @param {*} url
  * @param {*} params
  */
 export const postRequestWithNoTokenData = (url, params) => {

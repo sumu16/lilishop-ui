@@ -15,14 +15,16 @@
         </div>
       </Affix>
     </div>
+
     <div id="container"></div>
+    <Table border :columns="columns" :data="hotWordsData"></Table>
   </div>
 </template>
 
 <script>
 import {Chart} from "@antv/g2";
 import {getHotWordsStatistics} from "@/api/index";
-import affixTime from "@/views/lili-components/affix-time";
+import affixTime from "@/components/affix-time";
 
 export default {
   components: {
@@ -37,6 +39,16 @@ export default {
         month: "",
         top: 50
       },
+      columns:[
+        {
+          title: "热词名称",
+          key: "keywords",
+        },
+        {
+          title: "搜索次数",
+          key: "score",
+        },
+      ],
       hotWordsChart:"", //图表
       hotWordsData:[] //数据
     };
@@ -95,4 +107,5 @@ export default {
 .affix-time {
   padding-left: 15px;
 }
+
 </style>

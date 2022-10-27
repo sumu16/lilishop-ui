@@ -104,7 +104,7 @@
 </template>
 
 <script>
-import region from "@/views/lili-components/region";
+import region from "@/components/region";
 import * as API_Member from "@/api/member.js";
 import ossManage from "@/views/sys/oss-manage/ossManage";
 import * as RegExp from "@/libs/RegExp.js";
@@ -467,8 +467,8 @@ export default {
     handleSubmitModal() {
       const { nickName, sex, username, face, newPassword,id } = this.form;
       let time = new Date(this.form.birthday);
-      let birthday =
-        time.getFullYear() + "-" + (time.getMonth() + 1) + "-" + time.getDate();
+      let birthday = time ?
+        time.getFullYear() + "-" + (time.getMonth() + 1) + "-" + time.getDate() : '';
       let submit = {
         regionId: this.form.regionId,
         region: this.form.region,

@@ -12,7 +12,7 @@
           />
         </Form-item>
         <Form-item label="联系方式">
-          <Input
+          <Inputuser-manage
             type="text"
             v-model="searchForm.mobile"
             placeholder="请输入联系方式"
@@ -112,9 +112,9 @@ import {
   resetPassword
 } from "@/api/index";
 import {validateMobile} from "@/libs/validate";
-import departmentChoose from "@/views/my-components/lili/department-choose";
-import departmentTreeChoose from "@/views/my-components/lili/department-tree-choose";
-import uploadPicInput from "@/views/my-components/lili/upload-pic-input";
+import departmentChoose from "@/components/lili/department-choose";
+import departmentTreeChoose from "@/components/lili/department-tree-choose";
+import uploadPicInput from "@/components/lili/upload-pic-input";
 
 export default {
   name: "user-manage",
@@ -146,7 +146,7 @@ export default {
         email: "",
         sex: "",
         roles: [],
-        departmentId: "",
+        departmentId: 0,
         departmentTitle: ""
       },
       roleList: [], // 角色列表
@@ -354,7 +354,7 @@ export default {
         this.form.departmentId = v.departmentId;
         this.form.departmentTitle = v.departmentTitle;
       } else {
-        this.form.departmentId = "";
+        this.form.departmentId = 0;
         this.form.departmentTitle = "";
       }
     },
@@ -492,7 +492,7 @@ export default {
         email: "",
         sex: "",
         roles: [],
-        departmentId: "",
+        departmentId: 0,
         departmentTitle: ""
       },
       this.$refs.depTree.setData("", "");

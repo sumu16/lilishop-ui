@@ -5,6 +5,7 @@
         <Button @click="addParent" icon="md-add">添加一级分类</Button>
       </div>
       <Table
+      update-show-children
         class="table"
         :load-data="handleLoadData"
         row-key="id"
@@ -194,7 +195,7 @@ import {
   getCategoryTree,
 } from "@/api/goods";
 
-import uploadPicInput from "@/views/my-components/lili/upload-pic-input";
+import uploadPicInput from "@/components/lili/upload-pic-input";
 import { regular } from "@/utils";
 export default {
   name: "goods-category",
@@ -285,7 +286,7 @@ export default {
     getSpecList() {
       getSpecificationList().then((res) => {
         if (res.length != 0) {
-          this.specifications = res;
+          this.specifications = res.result;
         }
       });
     },
